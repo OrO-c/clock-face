@@ -9,9 +9,9 @@
     "web-vitals": "^2.1.4",
     "konva": "10.0.12",
     "react-konva": "18.2.14",
-    "tailwindcss": "4.1.18",
-    "autoprefixer": "10.4.23",
-    "postcss": "8.5.6",
+    "tailwindcss": "^3.4.0",  // 降级到稳定版本
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
     "zustand": "5.0.9",
     "immer": "11.1.0",
     "react-colorful": "5.6.1",
@@ -26,6 +26,11 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^4.9.0"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -37,11 +42,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "typescript": "^4.9.0"
   },
   "engines": {
     "node": ">=14.0.0"
