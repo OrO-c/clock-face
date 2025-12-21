@@ -8,7 +8,7 @@
     "react-scripts": "4.0.3",
     "web-vitals": "^2.1.4",
     "konva": "10.0.12",
-    "react-konva": "19.2.1",
+    "react-konva": "18.2.14",
     "tailwindcss": "4.1.18",
     "autoprefixer": "10.4.23",
     "postcss": "8.5.6",
