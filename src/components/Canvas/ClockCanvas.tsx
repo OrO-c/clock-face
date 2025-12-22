@@ -297,39 +297,36 @@ export const ClockCanvas: React.FC = () => {
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden shadow-lg">
-      <Stage
-        ref={stageRef}
-        width={width}
-        height={height}
-        style={{ backgroundColor: config.canvas.transparent ? 'transparent' : config.canvas.backgroundColor }}
-      >
-        <Layer>
-          {renderBackground()}
-          {renderMinorScales()}
-          {renderMajorScales()}
-          {renderNumbers()}
-          
-          {/* 中心点 */}
-          {config.center.visible && config.center.style !== 'none' && (
-            <Circle
-              x={centerX}
-              y={centerY}
-              radius={config.center.size}
-              fill={config.center.color}
-            />
-          )}
-          
-          {/* 外圆边框 */}
-          <Circle
-            x={centerX}
-            y={centerY}
-            radius={radius + 10}
-            stroke="#e2e8f0"
-            strokeWidth={2}
-            dash={[5, 5]}
-          />
-        </Layer>
-      </Stage>
+    <Stage
+  ref={stageRef}
+  width={width}
+  height={height}
+  style={{ backgroundColor: config.canvas.transparent ? 'transparent' : config.canvas.backgroundColor }}
+>
+  {/* 直接放Layer，不要用children属性 */}
+  {renderBackground() && renderBackground()}
+  {renderMinorScales()}
+  {renderMajorScales()}
+  {renderNumbers()}
+  {/* 中心点 */}
+  {config.center.visible && config.center.style !== 'none' && (
+    <Circle
+      x={centerX}
+      y={centerY}
+      radius={config.center.size}
+      fill={config.center.color}
+    />
+  )}
+  {/* 外圆边框 */}
+  <Circle
+    x={centerX}
+    y={centerY}
+    radius={radius + 10}
+    stroke="#e2e8f0"
+    strokeWidth={2}
+    dash={[5, 5]}
+  />
+    </Stage>
     </div>
   );
 };
