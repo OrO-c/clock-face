@@ -11,23 +11,22 @@ import {
 } from 'react-konva';
 import { useClockStore } from '../../stores/useClockStore';
 import { calculatePosition, generateNumberText } from '../../utils/canvasUtils';
-import useImage from 'react-konva-utils';
 
-// 自定义 hook 处理图片加载
+// 自定义 Hook：加载图片并返回状态
 const useLoadedImage = (url: string) => {
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
+  const [image, setImage] = useState<HTMLImageElement | undefined>(undefined);
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
 
   useEffect(() => {
     if (!url) {
-      setImage(null);
+      setImage(undefined);
       setStatus('loaded');
       return;
     }
 
     setStatus('loading');
     const img = new window.Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = 'anonymous'; // 支持跨域图片
     img.src = url;
 
     img.onload = () => {
@@ -37,7 +36,7 @@ const useLoadedImage = (url: string) => {
 
     img.onerror = () => {
       console.error('图片加载失败:', url);
-      setImage(null);
+      setImage(undefined);
       setStatus('error');
     };
   }, [url]);
@@ -54,10 +53,10 @@ export const ClockCanvas: React.FC = () => {
   const centerY = height / 2;
   const radius = Math.min(width, height) * 0.4;
 
-  // 使用自定义 hook 加载背景图
+  // 加载背景图
   const { image: bgImage, status: bgImageStatus } = useLoadedImage(config.background.image.url);
 
-  // 生成主刻度
+  // 渲染主刻度
   const renderMajorScales = () => {
     if (!config.majorScales.visible) return null;
 
@@ -77,6 +76,7 @@ export const ClockCanvas: React.FC = () => {
         case 'outside':
           endRadius = startRadius + config.majorScales.length;
           break;
+        case 'center':
         default:
           endRadius = startRadius;
       }
@@ -122,7 +122,7 @@ export const ClockCanvas: React.FC = () => {
             />
           );
           break;
-        default:
+        default: // line
           scales.push(
             <Line
               key={`major-${i}`}
@@ -137,7 +137,7 @@ export const ClockCanvas: React.FC = () => {
     return scales;
   };
 
-  // 生成副刻度
+  // 渲染副刻度
   const renderMinorScales = () => {
     if (!config.minorScales.visible) return null;
 
@@ -178,7 +178,7 @@ export const ClockCanvas: React.FC = () => {
     return scales;
   };
 
-  // 生成数字
+  // 渲染数字
   const renderNumbers = () => {
     if (!config.numbers.visible) return null;
 
@@ -236,12 +236,7 @@ export const ClockCanvas: React.FC = () => {
             fillLinearGradientEndPoint={{ x: width, y: height }}
             fillLinearGradientColorStops={
               config.background.gradient.type === 'linear'
-                ? [
-                    0,
-                    config.background.gradient.colors[0],
-                    1,
-                    config.background.gradient.colors[1],
-                  ]
+                ? [0, config.background.gradient.colors[0], 1, config.background.gradient.colors[1]]
                 : undefined
             }
             fillRadialGradientStartPoint={{ x: width / 2, y: height / 2 }}
@@ -250,20 +245,17 @@ export const ClockCanvas: React.FC = () => {
             fillRadialGradientEndRadius={Math.min(width, height) / 2}
             fillRadialGradientColorStops={
               config.background.gradient.type === 'radial'
-                ? [
-                    0,
-                    config.background.gradient.colors[0],
-                    1,
-                    config.background.gradient.colors[1],
-                  ]
+                ? [0, config.background.gradient.colors[0], 1, config.background.gradient.colors[1]]
                 : undefined
             }
           />
         );
+
       case 'image':
         if (!config.background.image.url || bgImageStatus === 'error') {
           return <Rect width={width} height={height} fill={config.background.color} />;
         }
+
         if (bgImageStatus === 'loading') {
           return (
             <>
@@ -280,18 +272,27 @@ export const ClockCanvas: React.FC = () => {
             </>
           );
         }
-        return (
+
+        // 只有当 bgImage 是 HTMLImageElement 时才渲染 Image
+        return bgImage ? (
           <Image
             image={bgImage}
             width={width}
             height={height}
             opacity={config.background.image.opacity}
           />
-        );
+        ) : null;
+
       default:
         return <Rect width={width} height={height} fill={config.background.color} />;
     }
   };
+
+  // 缓存渲染结果，避免重复计算
+  const backgroundContent = renderBackground();
+  const minorScales = renderMinorScales();
+  const majorScales = renderMajorScales();
+  const numbers = renderNumbers();
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden shadow-lg">
@@ -300,17 +301,22 @@ export const ClockCanvas: React.FC = () => {
         width={width}
         height={height}
         style={{
-          backgroundColor: config.canvas.transparent
-            ? 'transparent'
-            : config.canvas.backgroundColor,
+          backgroundColor: config.canvas.transparent ? 'transparent' : config.canvas.backgroundColor,
         }}
       >
-        {/* 所有图形必须放在 Layer 内 */}
         <Layer>
-          {renderBackground()}
-          {renderMinorScales()}
-          {renderMajorScales()}
-          {renderNumbers()}
+          {/* 背景 */}
+          {backgroundContent}
+
+          {/* 副刻度 */}
+          {minorScales}
+
+          {/* 主刻度 */}
+          {majorScales}
+
+          {/* 数字 */}
+          {numbers}
+
           {/* 中心点 */}
           {config.center.visible && config.center.style !== 'none' && (
             <Circle
@@ -320,6 +326,7 @@ export const ClockCanvas: React.FC = () => {
               fill={config.center.color}
             />
           )}
+
           {/* 外圆边框 */}
           <Circle
             x={centerX}
